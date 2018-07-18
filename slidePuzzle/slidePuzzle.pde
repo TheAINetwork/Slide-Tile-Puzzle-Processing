@@ -42,7 +42,7 @@ class StateComparator implements Comparator<State> {
 }
 
 int[] dy = {1, 0, -1, 0}, dx = {0, -1, 0, 1}; float[] col;
-int ni, nj, startTime = millis(), endTime = -1, rainbow, waitTime = 0, animationTime = 20, minSteps = 0, scrambleSteps = 1000; boolean animation = false;
+int ni, nj, startTime = millis(), endTime = -1, rainbow, waitTime = 0, animationFrames = 5, solveFrames = 10, minSteps = 0, scrambleSteps = 1000; boolean animation = false;
 float nowDistance = -1;
 Set<String> visitedSet = new HashSet<String>();
 Queue<State> queue = new ArrayDeque<State>();
@@ -59,6 +59,7 @@ void setup() {
   blockSize = float(min(height, width)) / size;
   colorMode(HSB, 360, 100, 100);
   textAlign(CENTER,CENTER);
+  frameRate(60);
 
   pg = createGraphics(1150, 900);
   pg.colorMode(HSB, 360, 100, 100);
@@ -85,6 +86,7 @@ void drawBlock(int i, int j) {
 
 void pgDrawBlock(int i, int j, int nextI, int nextJ, float frame) {
   pg.beginDraw();
+  // pg.clear();
   pg.colorMode(HSB, 360, 100, 100);
   pg.textAlign(CENTER,CENTER);
 
@@ -105,17 +107,25 @@ void pgDrawBlock(int i, int j, int nextI, int nextJ, float frame) {
 void draw() {
   if (animation) {
     image(pg, 0, 0);
+    fill(230, 0, 100);
+    rect(width * 0.8, height * 0.05, 300, 300);
+    fill(0, 0, 0);
+    textSize(blockSize / 5.34);
+    text(nfs(round(nowDistance*1000)/1000.0, 2, 3), width * 0.9, height * 0.1);
+    text(nfs(minSteps, 4), width * 0.9, height * 0.2);
+    text(frameRate, width * 0.9, height * 0.3);
   }
   else if (!solved()) {
     for (int i = 0; i < size; i ++)
       for (int j = 0; j < size; j ++)
         drawBlock(i, j);
     fill(230, 0, 100);
-    rect(width * 0.8, height * 0.05, 300, 200);
+    rect(width * 0.8, height * 0.05, 300, 300);
     fill(0, 0, 0);
     textSize(blockSize / 5.34);
     text(nfs(round(nowDistance*1000)/1000.0, 2, 3), width * 0.9, height * 0.1);
     text(nfs(minSteps, 4), width * 0.9, height * 0.2);
+    text(frameRate, width * 0.9, height * 0.3);
   } else {
     background(rainbow % 360, 100, 100);
     rainbow = (rainbow + 4) % 36000;
@@ -123,6 +133,7 @@ void draw() {
     text(str((endTime - startTime) / 1000.0) + "s", width / 2.0, height / 3.0);
     text(str(minSteps) + " steps", width / 2.0, height * (2.0/3));
   }
+
 }
 
 boolean invalid(int i, int j) {
@@ -137,15 +148,21 @@ void setBlackBlock() {
       }
 }
 
-void movementAnimation(int dir) {
+float sigmoid(float x) {
+  if (x == 1) return(1);
+  if (x == -1) return(0);
+  return(1.0 / (1.0 + exp(-x*5)));
+}
+
+void movementAnimation(int dir, int ani) {
   int pi = ni + dy[dir], pj = nj + dx[dir];
   if (invalid(pi, pj)) return;
   animation = true;
-  float nowFrame = animationTime;
-  // print(animation, nowFrame, pi, pj, ni, nj, "\n");
-  while (nowFrame -- > 0) {
-    pgDrawBlock(pi, pj, ni, nj, 1.0 - nowFrame / animationTime);
-    delay(1);
+  float nowFrame = ani;
+  while (nowFrame >= 0) {
+    pgDrawBlock(pi, pj, ni, nj, 1.0 - sigmoid(2*nowFrame/ani - 1));
+    delay(16);
+    nowFrame --;
   }
   animation = false;
 }
@@ -160,13 +177,13 @@ void movement(int dir, int increment) {
 
 void keyThread() {
   if (keyCode == UP) {
-    movement(0, 1); // movementAnimation(0);
+    movementAnimation(0, animationFrames); movement(0, 1);
   } else if (keyCode == RIGHT) {
-    movement(1, 1); // movementAnimation(1);
+    movementAnimation(1, animationFrames); movement(1, 1);
   } else if (keyCode == DOWN) {
-    movement(2, 1); // movementAnimation(2);
+    movementAnimation(2, animationFrames); movement(2, 1);
   } else if (keyCode == LEFT) {
-    movement(3, 1); // movementAnimation(3);
+    movementAnimation(3, animationFrames); movement(3, 1);
   } else if (key == 'r') {
     visitedSet.clear();
     scramble();
@@ -176,8 +193,8 @@ void keyThread() {
   }
 }
 
-void keyReleased() {
-  //thread("keyThread");
+void keyPressed() {
+  if (!animation) thread("keyThread");
 }
 
 void scramble() {
@@ -193,6 +210,9 @@ void scramble() {
     int dir; do dir = int(random(0, 4)); while (invalid(ni + dy[dir], nj + dx[dir]));
     movement(dir, 0);
   }
+  pg.beginDraw();
+  pg.clear();
+  pg.endDraw();
 }
 
 void followPath(ArrayList<Integer> path) {
@@ -200,10 +220,11 @@ void followPath(ArrayList<Integer> path) {
     if (table[i][j] == sqSize) { ni = i; nj = j; }
     pgDrawBlock(i, j, i, j, 0);
   }
+  setBlackBlock();
   minSteps = 0;
   while (path.size() > 0) {
     int dir = path.get(0);
-    movementAnimation(dir); movement(dir, 1);
+    movementAnimation(dir, solveFrames); movement(dir, 1);
     path.remove(0);
   }
 }
