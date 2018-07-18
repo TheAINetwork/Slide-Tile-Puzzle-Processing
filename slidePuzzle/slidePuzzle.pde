@@ -42,7 +42,7 @@ class StateComparator implements Comparator<State> {
 }
 
 int[] dy = {1, 0, -1, 0}, dx = {0, -1, 0, 1}; float[] col;
-int ni, nj, startTime = millis(), endTime = -1, rainbow, waitTime = 0, animationFrames = 5, solveFrames = 10, minSteps = 0, scrambleSteps = 1000; boolean animation = false;
+int ni, nj, startTime = millis(), endTime = -1, rainbow, waitTime = 0, animationFrames = 30, solveFrames = 45, minSteps = 0, scrambleSteps = 1000; boolean animation = false;
 float nowDistance = -1;
 Set<String> visitedSet = new HashSet<String>();
 Queue<State> queue = new ArrayDeque<State>();
@@ -59,7 +59,7 @@ void setup() {
   blockSize = float(min(height, width)) / size;
   colorMode(HSB, 360, 100, 100);
   textAlign(CENTER,CENTER);
-  frameRate(60);
+  frameRate(999);
 
   pg = createGraphics(1150, 900);
   pg.colorMode(HSB, 360, 100, 100);
@@ -161,7 +161,7 @@ void movementAnimation(int dir, int ani) {
   float nowFrame = ani;
   while (nowFrame >= 0) {
     pgDrawBlock(pi, pj, ni, nj, 1.0 - sigmoid(2*nowFrame/ani - 1));
-    delay(16);
+    delay(1);
     nowFrame --;
   }
   animation = false;
