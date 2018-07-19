@@ -42,7 +42,7 @@ class StateComparator implements Comparator<State> {
 }
 
 int[] dy = {1, 0, -1, 0}, dx = {0, -1, 0, 1}; float[] col;
-int ni, nj, startTime = millis(), endTime = -1, rainbow, waitTime = 0, animationFrames = 30, solveFrames = 45, minSteps = 0, scrambleSteps = 1000; boolean animation = false;
+int ni, nj, startTime = millis(), endTime = -1, rainbow, waitTime = 0, animationFrames = 20, solveFrames = 45, minSteps = 0, scrambleSteps = 1000; boolean animation = false;
 float nowDistance = -1;
 Set<String> visitedSet = new HashSet<String>();
 Queue<State> queue = new ArrayDeque<State>();
@@ -59,7 +59,7 @@ void setup() {
   blockSize = float(min(height, width)) / size;
   colorMode(HSB, 360, 100, 100);
   textAlign(CENTER,CENTER);
-  frameRate(999);
+  frameRate(100);
 
   pg = createGraphics(1150, 900);
   pg.colorMode(HSB, 360, 100, 100);
@@ -128,7 +128,7 @@ void draw() {
     text(frameRate, width * 0.9, height * 0.3);
   } else {
     background(rainbow % 360, 100, 100);
-    rainbow = (rainbow + 4) % 36000;
+    rainbow = (rainbow + 1) % 36000;
     if (endTime == -1) endTime = millis();
     text(str((endTime - startTime) / 1000.0) + "s", width / 2.0, height / 3.0);
     text(str(minSteps) + " steps", width / 2.0, height * (2.0/3));
@@ -245,17 +245,21 @@ void startSolve() {
   //
   // delay(5000);
   //
-  prepareSolve(aux);
-  path = bfs(true);
-  print("BFS done, states: " + str(visitedSet.size()) + "\n");
-  //
-  // delay(5000);
-
   // prepareSolve(aux);
-  // path = aStar(true);
-  // print("A* (euclideanDistance) done, states: " + str(visitedSet.size()) + "\n");
-
+  // path = bfs(true);
+  // print("BFS done, states: " + str(visitedSet.size()) + "\n");
+  // //
+  // // delay(5000);
+  //
+  prepareSolve(aux);
+  path = aStar(true);
+  print("A* (euclideanDistance) done, states: " + str(visitedSet.size()) + "\n");
+  //
   delay(3000);
+  // prepareSolve(aux);
+  // int[] arr = new int[] {2, 3, 0, 1, 2, 3, 0, 3, 0, 1, 2, 2, 3, 3, 0, 3, 0, 1, 2, 0, 3, 2, 2, 3, 1, 0, 3, 0, 3, 0, 3, 2, 2, 2, 3, 1, 2, 0, 3, 2, 2, 3, 3, 0, 3, 2, 1, 0, 1, 0, 3, 2, 3, 2, 0, 0, 1, 2, 1, 2, 1, 2, 2, 3, 2, 2, 3, 2, 3, 2, 0, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 3, 2, 2, 3, 1, 2, 2, 3, 2, 3, 0, 3, 0, 1, 2, 2, 3, 2, 3, 0, 3, 0, 3, 1, 2, 2, 2, 3, 2, 3, 0, 3, 0, 1, 2, 0, 3, 2, 2, 2, 3, 2, 3, 1, 0, 3, 2, 3, 2, 0, 0, 1, 2, 0, 1, 2, 2, 3, 3, 0, 3, 0, 1, 2, 0, 3, 0, 3, 1, 2, 2, 2, 3, 2, 3, 0, 3, 2, 2, 3, 1, 2, 0, 1, 2, 0, 3, 0, 3, 2, 3, 2, 3, 2, 2, 2, 1, 2, 0, 3, 0, 3, 1, 2, 1, 2, 2, 3, 2, 3, 2, 3, 2, 0, 1, 2, 1, 2, 2, 3, 1, 2, 0, 3, 2, 3, 2, 3};
+  // path = new ArrayList<Integer>();
+  // for (int i = 0; i < arr.length; i ++) path.add(arr[i]);
   prepareSolve(aux);
   if (path != null) followPath(path);
 }
