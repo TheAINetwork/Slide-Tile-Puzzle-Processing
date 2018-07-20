@@ -110,10 +110,19 @@ void draw() {
     fill(230, 0, 100);
     rect(width * 0.8, height * 0.05, 300, 300);
     fill(0, 0, 0);
-    textSize(blockSize / 5.34);
-    text(nfs(round(nowDistance*1000)/1000.0, 2, 3), width * 0.9, height * 0.1);
-    text(nfs(minSteps, 4), width * 0.9, height * 0.2);
-    text(frameRate, width * 0.9, height * 0.3);
+    textSize(blockSize / 5.45);
+    text("dist: " + nfs(round(nowDistance*1000)/1000.0, 2, 3), width * 0.9, height * 0.1);
+    text("steps: " + nfs(minSteps, 4), width * 0.9, height * 0.2);
+    text("FPS: " + nfs(frameRate, 3, 2), width * 0.9, height * 0.3);
+
+    fill(0, 100, 100);
+    rect(width * 0.8, height * 0.45, 300, 100);
+    fill(0, 0, 0);
+    text("RESET", width * 0.9, height * 0.5);
+    fill(230, 100, 100);
+    rect(width * 0.8, height * 0.60, 300, 100);
+    fill(0, 0, 0);
+    text("SOLVE", width * 0.9, height * 0.65);
   }
   else if (!solved()) {
     for (int i = 0; i < size; i ++)
@@ -122,10 +131,19 @@ void draw() {
     fill(230, 0, 100);
     rect(width * 0.8, height * 0.05, 300, 300);
     fill(0, 0, 0);
-    textSize(blockSize / 5.34);
-    text(nfs(round(nowDistance*1000)/1000.0, 2, 3), width * 0.9, height * 0.1);
-    text(nfs(minSteps, 4), width * 0.9, height * 0.2);
-    text(frameRate, width * 0.9, height * 0.3);
+    textSize(blockSize / 5.45);
+    text("dist: " + nfs(round(nowDistance*1000)/1000.0, 2, 3), width * 0.9, height * 0.1);
+    text("steps: " + nfs(minSteps, 4), width * 0.9, height * 0.2);
+    text("FPS: " + nfs(frameRate, 3, 2), width * 0.9, height * 0.3);
+
+    fill(0, 100, 100);
+    rect(width * 0.8, height * 0.45, 300, 100);
+    fill(0, 0, 0);
+    text("RESET", width * 0.9, height * 0.5);
+    fill(230, 100, 100);
+    rect(width * 0.8, height * 0.60, 300, 100);
+    fill(0, 0, 0);
+    text("SOLVE", width * 0.9, height * 0.65);
   } else {
     background(rainbow % 360, 100, 100);
     rainbow = (rainbow + 1) % 36000;
@@ -133,7 +151,6 @@ void draw() {
     text(str((endTime - startTime) / 1000.0) + "s", width / 2.0, height / 3.0);
     text(str(minSteps) + " steps", width / 2.0, height * (2.0/3));
   }
-
 }
 
 boolean invalid(int i, int j) {
@@ -175,6 +192,12 @@ void movement(int dir, int increment) {
   minSteps += increment;
 }
 
+void reset() {
+  visitedSet.clear();
+  scramble();
+  startTime = millis(); endTime = -1; minSteps = 0;
+}
+
 void keyThread() {
   if (keyCode == UP) {
     movementAnimation(0, animationFrames); movement(0, 1);
@@ -185,9 +208,7 @@ void keyThread() {
   } else if (keyCode == LEFT) {
     movementAnimation(3, animationFrames); movement(3, 1);
   } else if (key == 'r') {
-    visitedSet.clear();
-    scramble();
-    startTime = millis(); endTime = -1; minSteps = 0;
+    reset();
   } else if (key == 's') {
     thread("startSolve");
   }
@@ -195,6 +216,32 @@ void keyThread() {
 
 void keyPressed() {
   if (!animation) thread("keyThread");
+}
+
+void mouseThread() {
+  if (mouseX >= width * 0.8 && mouseX <= width * 0.8 + 300)
+  {
+    //width * 0.8, height * 0.45, 300, 100
+    if (mouseY >= height * 0.45 && mouseY <= height * 0.45 + 100)
+      reset();
+    //rect(width * 0.8, height * 0.60, 300, 100);
+    else if (mouseY >= height * 0.6 && mouseY <= height * 0.65 + 100)
+      thread("startSolve");
+  }
+  else {
+    for (int i = 0; i < size; i ++) for (int j = 0; j < size; j ++)
+      if (mouseX >= j * blockSize && mouseX <= (j + 1) * blockSize && mouseY >= i * blockSize && mouseY <= (i + 1) * blockSize)
+        for (int k = 0; k < 4; k ++)
+          if (i + dy[(k + 2) % 4] == ni && j + dx[(k + 2) % 4] == nj) {
+            movementAnimation(k, animationFrames); movement(k, 1);
+          }
+      // rect(j * blockSize, i * blockSize, blockSize, blockSize);
+  }
+}
+
+
+void mouseClicked() {
+  if (!animation) thread("mouseThread");
 }
 
 void scramble() {
